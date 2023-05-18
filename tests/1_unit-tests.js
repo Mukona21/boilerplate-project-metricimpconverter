@@ -1,129 +1,86 @@
+const chaiHttp = require('chai-http');
 const chai = require('chai');
 let assert = chai.assert;
-const ConvertHandler = require('../controllers/convertHandler.js');
+const server = require('../server');
+const { suite } = require('mocha');
+const {
+  ERROR_INVALID_NUMBER,
+  ERROR_INVALID_UNIT,
+} = require('../controllers/convertHandler');
 
-let convertHandler = new ConvertHandler();
+chai.use(chaiHttp);
 
-suite('Unit Tests', function(){
-  suite('Function convertHandler.getNum(input)', () => {
-    test('Whole number input', done => {
-      const input = '32L';
-      assert.equal(convertHandler.getNum(input), 32);
-      done();
+suite('Functional Tests', function () {
+  suite('GET /api/convert', function () {
+    const validInput = '5.3kg';
+    test(`Convert valid input: ${validInput}`, (done) => {
+      chai
+        .request(server)
+        .get('/api/convert')
+        .query({ input: validInput })
+        .end((_err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.initNum, 5.3);
+          assert.equal(res.body.initUnit, 'kg');
+          assert.approximately(res.body.returnNum, 11.68451, 0.1);
+          assert.equal(res.body.returnUnit, 'lbs');
+          done();
+        });
     });
 
-    test('Decimal Input', done => {
-      const input = '3.1KM';
-      assert.equal(convertHandler.getNum(input), 3.1);
-      done();
+    const invalidInput = '34.13xlbs';
+    test(`Convert invalid input: ${invalidInput}`, function (done) {
+      chai
+        .request(server)
+        .get('/api/convert')
+        .query({ input: invalidInput })
+        .end((_err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(res.body, ERROR_INVALID_UNIT);
+          done();
+        });
     });
 
-    test('Fractional Input', done => {
-      const input = '3/2L';
-      assert.equal(convertHandler.getNum(input), 1.5);
-      done();
+    const invalidNumber = '34/1/3lbs';
+    test(`Convert invalid number: ${invalidNumber}`, (done) => {
+      chai
+        .request(server)
+        .get('/api/convert')
+        .query({ input: invalidNumber })
+        .end((_err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(res.body, ERROR_INVALID_NUMBER);
+          done();
+        });
     });
 
-    test('Fractional Input w/ Decimal', done => {
-      const input = '3.3/3mi';
-      assert.equal(convertHandler.getNum(input), 1.0999999999999999);
-      done();
+    const invalidNumberAndUnit = '34/1/3xlbs';
+    test(`Convert invalid number and unit: ${invalidNumberAndUnit}`, (done) => {
+      chai
+        .request(server)
+        .get('/api/convert')
+        .query({ input: invalidNumberAndUnit })
+        .end((_err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(res.body, ERROR_INVALID_NUMBER + ' and unit');
+          done();
+        });
     });
 
-    test('Invalid Input (double fraction)', done => {
-      const input = '3//3mi';
-      assert.equal(convertHandler.getNum(input), 'Invalid Number');
-      done();
-    });
-
-    test('No Numerical Input', done => {
-      const input = 'mi';
-      assert.equal(convertHandler.getNum(input), 1);
-      done();
-    }); 
-  });
-
-  suite('Function convertHandler.getUnit(input)', () => {
-    test('For Each Valid Unit Inputs', done => {
-      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg', 'GAL', 'L', 'MI', 'KM', 'LBS', 'KG'];
-      input.forEach(element => {
-        assert.equal(convertHandler.getUnit(element), element.toLowerCase() === 'l' ? 'L' : element.toLocaleLowerCase());
-      });
-      done();
-    });
-
-    test('Unknown Unit Input', done => {
-      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg', 'GAL', 'L', 'MI', 'KM', 'LBS', 'KG'];
-      input.forEach(element => {
-        assert.notEqual(convertHandler.getUnit(element), 'Invalid Unit');
-      });
-      done();
-    });  
-  });
-
-  suite('Function convertHandler.getReturnUnit(initUnit)', () => {
-    test('For Each Valid Unit Inputs', done => {
-      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
-      const expect = ['L', 'gal', 'km', 'mi', 'kg', 'lbs'];
-      input.forEach((element, i) => {
-        assert.equal(convertHandler.getReturnUnit(element), expect[i]);
-      });
-      done();
-    });
-  });  
-
-  suite('Function convertHandler.spellOutUnit(unit)', () => {
-    test('For Each Valid Unit Inputs', done => {
-      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
-      const expected = ['gallons', 'liters', 'miles', 'kilometers', 'pounds', 'kilograms'];
-      input.forEach((element, i) => {
-        assert.equal(convertHandler.spellOutUnit(element), expected[i]);
-      });
-      done();
-    });
-  });
-
-  suite('Function convertHandler.convert(num, unit)', () => {
-    test('Gal to L', done => {
-      const input = [5, 'gal'];
-      const expected = 18.9271;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
-    });
-
-    test('L to Gal', done => {
-      const input = [5, 'l'];
-      const expected = 1.32086;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
-    });
-
-    test('Mi to Km', done => {
-      const input = [5, 'mi'];
-      const expected = 8.0467;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
-    });
-
-    test('Km to Mi', done => {
-      const input = [5, 'km'];
-      const expected = 3.10686;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
-    });
-
-    test('Lbs to Kg', done => {
-      const input = [1, 'lbs'];
-      const expected = 0.45359;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
-    });
-
-    test('Kg to Lbs', done => {
-      const input = [1, 'kg'];
-      const expected = 2.20462;
-      assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
-      done();
+    const inputWithoutNumber = 'lbs';
+    test(`Convert with no number: ${inputWithoutNumber}`, (done) => {
+      chai
+        .request(server)
+        .get('/api/convert')
+        .query({ input: inputWithoutNumber })
+        .end((_err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(
+            res.body.string,
+            '1 pounds converts to 0.45359 kilograms'
+          );
+          done();
+        });
     });
   });
 });
