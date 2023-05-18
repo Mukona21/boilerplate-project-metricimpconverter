@@ -1,45 +1,33 @@
-'use strict';
+"use strict";
 
-const expect = require('chai').expect;
-const {
-  ConvertHandler,
-  ERROR_INVALID_NUMBER,
-  ERROR_INVALID_UNIT,
-} = require('../controllers/convertHandler.js');
+const expect = require("chai").expect;
+const ConvertHandler = require("../controllers/convertHandler.js");
 
 module.exports = function (app) {
-  const convertHandler = new ConvertHandler();
+  let convertHandler = new ConvertHandler();
 
-  app.route('/api/convert').get(function (req, res) {
+  app.get("/api/convert", (req, res) => {
     const input = req.query.input;
-    const initNum = convertHandler.getNum(input);
-    const hasNumErr = initNum.toString().startsWith(ERROR_INVALID_NUMBER);
+    const num = convertHandler.getNum(input);
+    const unit = convertHandler.getUnit(input);
+    const returnUnit = convertHandler.getReturnUnit(unit);
+    const returnNum = convertHandler.convert(num, unit);
+    const string = convertHandler.getString(num, unit, returnNum, returnUnit);
 
-    const initUnit = convertHandler.getUnit(input);
-    const hasUnitErr = initUnit.startsWith(ERROR_INVALID_UNIT);
-
-    if (hasNumErr && hasUnitErr) {
-      return res.json(`${ERROR_INVALID_NUMBER} and unit`);
-    } else if (hasNumErr) {
-      return res.json(ERROR_INVALID_NUMBER);
-    } else if (hasUnitErr) {
-      return res.json(ERROR_INVALID_UNIT);
+    if (num === "invalid number" && unit === "invalid unit") {
+      res.json("invalid number and unit");
+    } else if (num === "invalid number") {
+      res.json("invalid number");
+    } else if (unit === "invalid unit") {
+      res.json("invalid unit");
+    } else {
+      res.json({
+        initNum: num,
+        initUnit: unit,
+        returnNum: returnNum,
+        returnUnit: returnUnit,
+        string: string,
+      });
     }
-
-    const returnUnit = convertHandler.getReturnUnit(initUnit);
-    const returnNum = convertHandler.convert(initNum, initUnit);
-
-    return res.json({
-      initNum,
-      initUnit,
-      returnNum,
-      returnUnit,
-      string: convertHandler.getString(
-        initNum,
-        initUnit,
-        returnNum,
-        returnUnit
-      ),
-    });
   });
 };
