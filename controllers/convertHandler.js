@@ -1,101 +1,151 @@
-const UNITS_BASE = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
-const UNITS_MAPS = ['l', 'gal', 'km', 'mi', 'kg', 'lbs'];
-const UNITS_SPLL = [
-  'gallons',
-  'liters',
-  'miles',
-  'kilometers',
-  'pounds',
-  'kilograms',
-];
-
-const GAL_TO_L = 3.78541;
-const MIL_TO_KM = 1.60934;
-const LBS_TO_KG = 0.453592;
-
-const ERROR_INVALID_NUMBER = 'invalid number';
-const ERROR_INVALID_UNIT = 'invalid unit';
-
 function ConvertHandler() {
-  this.getNum = function (inputArg) {
-    let input = inputArg ? inputArg.trim() : '';
-    if (input) {
-      if (input.includes('/')) {
-        let fractions = input.replace(/[a-z]/gi, '').split('/');
-        if (fractions.length == 2) {
-          return eval(
-            (parseFloat(fractions[0]) / parseFloat(fractions[1])).toFixed(5)
-          );
+  
+  this.getNum = function(input) {
+    let result;
+    const regex = /[a-z]/i;
+    const fractionRegex = /[/]/g;
+
+    const index = input.indexOf(input.match(regex));
+
+    if (index === 0) {
+      result = 1;
+    }
+    else {
+      result = input.split('', index).join('');
+
+      const fractionChecker = fractionRegex.test(result);
+      if (fractionChecker === true) {
+        const doubleFractionMatch = result.match(fractionRegex);
+        if (doubleFractionMatch.length !== 1) {
+          result = 'Invalid Number';
+        }
+        else{
+          result = eval(result);
         }
       } else {
-        let numMatch = input.match(/[\d\.]+/);
-        return numMatch ? eval(numMatch[0]) : 1;
+        result = eval(result);
       }
     }
-
-    return ERROR_INVALID_NUMBER;
+    return result;
   };
-
-  this.getUnit = function (inputArg) {
-    let input = inputArg ? inputArg.trim() : '';
-    if (input) {
-      let unitMatch = input.match(/[a-zA-Z]+$/);
-      if (unitMatch) {
-        let unit = unitMatch[0].trim().toLowerCase();
-        if (UNITS_BASE.includes(unit)) {
-          return unit === 'l' ? 'L' : unit;
-        } else {
-          return `${ERROR_INVALID_UNIT}, ${unit} is not a valid unit and valid units are: ${UNITS_BASE.join(
-            ', '
-          )}`;
+  
+  this.getUnit = function(input) {
+    let result;
+    let checker = false;
+    const regex = /[a-z]/i;
+    index = input.indexOf(input.match(regex));
+    result = input.slice(index, input.length).toLowerCase();
+    const unitBank = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
+    for (let i = 0; i < unitBank.length; i++) {
+      if (result === unitBank[i]) {
+        checker = true;
+        if (result === 'l') {
+          result = 'L';
         }
       }
     }
-
-    return ERROR_INVALID_UNIT;
+    if (!checker) {
+      result = 'Invalid Unit';
+    }
+    return result;
+  };
+  
+  this.getReturnUnit = function(initUnit) {
+    let result;
+    const initialUnit = initUnit.toLowerCase();
+    switch (initialUnit) {
+      case 'mi':
+        result = 'km';
+        break;
+      case 'km':
+        result = 'mi';
+        break;
+      case 'gal':
+        result = 'L';
+        break;
+      case 'l':
+        result = 'gal';
+        break;
+      case 'lbs':
+        result = 'kg';
+        break;
+      case 'kg':
+        result = 'lbs';
+        break;
+      default:
+        result = 'Invalid Unit';
+    }
+    return result;
   };
 
-  this.getReturnUnit = function (initUnit) {
-    const result = UNITS_MAPS[UNITS_BASE.indexOf(initUnit.toLowerCase())];
-    return result === 'l' ? 'L' : result;
+  this.spellOutUnit = function(unit) {
+    let result;
+    const initialUnit = unit.toLowerCase();
+    switch (initialUnit) {
+      case 'mi':
+        result = 'miles';
+        break;
+      case 'km':
+        result = 'kilometers';
+        break;
+      case 'gal':
+        result = 'gallons';
+        break;
+      case 'l':
+        result = 'liters';
+        break;
+      case 'lbs':
+        result = 'pounds';
+        break;
+      case 'kg':
+        result = 'kilograms';
+        break;
+      default:
+        result = 'Invalid Unit';
+    }
+    return result;
   };
-
-  this.spellOutUnit = function (initUnit) {
-    return UNITS_SPLL[UNITS_BASE.indexOf(initUnit.toLowerCase())];
+  
+  this.convert = function(initNum, initUnit) {
+    const galToL = 3.78541;
+    const lbsToKg = 0.453592;
+    const miToKm = 1.60934;
+    let result;
+    const initialUnit = initUnit.toLowerCase();
+    switch (initialUnit) {
+      case 'mi':
+        result = initNum * miToKm;
+        break;
+      case 'km':
+        result = initNum / miToKm;
+        break;
+      case 'gal':
+        result = initNum * galToL;
+        break;
+      case 'l':
+        result = initNum / galToL;
+        break;
+      case 'lbs':
+        result = initNum * lbsToKg;
+        break;
+      case 'kg':
+        result = initNum / lbsToKg;
+        break;
+      default:
+        result = 'ERROR';
+    }
+    if (result !== 'ERROR') {
+      result = (result * 100000).toFixed(0) / 100000;
+    }
+    return result;
   };
-
-  this.convert = function (initNum, initUnit) {
-    const calculate = () => {
-      switch (initUnit.toLowerCase()) {
-        case 'gal':
-          return parseFloat(initNum * GAL_TO_L);
-        case 'l':
-          return parseFloat(initNum / GAL_TO_L);
-        case 'lbs':
-          return parseFloat(initNum * LBS_TO_KG);
-        case 'kg':
-          return parseFloat(initNum / LBS_TO_KG);
-        case 'mi':
-          return parseFloat(initNum * MIL_TO_KM);
-        case 'km':
-          return parseFloat(initNum / MIL_TO_KM);
-        default:
-          return parseFloat(initNum / miToKm);
-      }
-    };
-
-    return Number(calculate().toFixed(5));
+  
+  this.getString = function(initNum, initUnit, returnNum, returnUnit) {
+    let result;
+    result = initNum + ' ' + this.spellOutUnit(initUnit) + ' converts to ' + returnNum.toFixed(5) + ' ' + this.spellOutUnit(returnUnit);
+    return result;
   };
-
-  this.getString = function (initNum, initUnit, returnNum, returnUnit) {
-    return `${initNum} ${this.spellOutUnit(
-      initUnit
-    )} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`;
-  };
+  
 }
 
-module.exports = {
-  ConvertHandler,
-  ERROR_INVALID_NUMBER,
-  ERROR_INVALID_UNIT,
-};
+module.exports = ConvertHandler;
