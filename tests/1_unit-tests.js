@@ -1,10 +1,10 @@
 const chai = require('chai');
-let assert = chai.assert;
+const assert = chai.assert;
 const ConvertHandler = require('../controllers/convertHandler.js');
 
 let convertHandler = new ConvertHandler();
 
-suite('Unit Tests', function(){
+suite('Unit Tests', function() {
   suite('Function convertHandler.getNum(input)', () => {
     test('Whole number input', done => {
       const input = '32L';
@@ -40,7 +40,7 @@ suite('Unit Tests', function(){
       const input = 'mi';
       assert.equal(convertHandler.getNum(input), 1);
       done();
-    }); 
+    });
   });
 
   suite('Function convertHandler.getUnit(input)', () => {
@@ -53,12 +53,10 @@ suite('Unit Tests', function(){
     });
 
     test('Unknown Unit Input', done => {
-      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg', 'GAL', 'L', 'MI', 'KM', 'LBS', 'KG'];
-      input.forEach(element => {
-        assert.notEqual(convertHandler.getUnit(element), 'Invalid Unit');
-      });
+      const input = 'invalid';
+      assert.equal(convertHandler.getUnit(input), 'Invalid Unit');
       done();
-    });  
+    });
   });
 
   suite('Function convertHandler.getReturnUnit(initUnit)', () => {
@@ -70,7 +68,7 @@ suite('Unit Tests', function(){
       });
       done();
     });
-  });  
+  });
 
   suite('Function convertHandler.spellOutUnit(unit)', () => {
     test('For Each Valid Unit Inputs', done => {
@@ -127,10 +125,10 @@ suite('Unit Tests', function(){
     });
   });
 
-  suite('Function convertHandler.getInvalidUnitMessage()', () => {
+  suite('Function convertHandler.getInvalidUnitMessage(input)', () => {
     test('Invalid Unit Input', done => {
       const input = '5invalid';
-      assert.equal(convertHandler.getUnit(input), 'Invalid Unit');
+      assert.equal(convertHandler.getInvalidUnitMessage(input), 'Invalid Unit');
       done();
     });
   });
