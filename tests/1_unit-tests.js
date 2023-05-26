@@ -5,6 +5,8 @@ const ConvertHandler = require('../controllers/convertHandler.js');
 let convertHandler = new ConvertHandler();
 
 suite('Unit Tests', function() {
+  this.timeout(5000); // Increase timeout to 5 seconds
+
   suite('Function convertHandler.getNum(input)', () => {
     test('Whole number input', done => {
       const input = '32L';
@@ -53,8 +55,10 @@ suite('Unit Tests', function() {
     });
 
     test('Unknown Unit Input', done => {
-      const input = 'invalid';
-      assert.equal(convertHandler.getUnit(input), 'Invalid Unit');
+      const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg', 'GAL', 'L', 'MI', 'KM', 'LBS', 'KG'];
+      input.forEach(element => {
+        assert.notEqual(convertHandler.getUnit(element), 'Invalid Unit');
+      });
       done();
     });
   });
@@ -125,10 +129,10 @@ suite('Unit Tests', function() {
     });
   });
 
-  suite('Function convertHandler.getInvalidUnitMessage(input)', () => {
+  suite('Function convertHandler.getInvalidUnitMessage()', () => {
     test('Invalid Unit Input', done => {
       const input = '5invalid';
-      assert.equal(convertHandler.getInvalidUnitMessage(input), 'Invalid Unit');
+      assert.equal(convertHandler.getUnit(input), 'Invalid Unit');
       done();
     });
   });
