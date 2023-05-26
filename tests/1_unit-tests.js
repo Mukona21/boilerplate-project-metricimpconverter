@@ -47,7 +47,7 @@ suite('Unit Tests', function(){
     test('For Each Valid Unit Inputs', done => {
       const input = ['gal', 'l', 'mi', 'km', 'lbs', 'kg', 'GAL', 'L', 'MI', 'KM', 'LBS', 'KG'];
       input.forEach(element => {
-        assert.equal(convertHandler.getUnit(element), element.toLowerCase() === 'l' ? 'L' : element.toLocaleLowerCase());
+        assert.equal(convertHandler.getUnit(element), element.toLowerCase() === 'l' ? 'L' : element.toLowerCase());
       });
       done();
     });
@@ -123,6 +123,14 @@ suite('Unit Tests', function(){
       const input = [1, 'kg'];
       const expected = 2.20462;
       assert.approximately(convertHandler.convert(input[0], input[1]), expected, 0.1);
+      done();
+    });
+  });
+
+  suite('Function convertHandler.getInvalidUnitMessage()', () => {
+    test('Invalid Unit Input', done => {
+      const input = '5invalid';
+      assert.equal(convertHandler.getUnit(input), 'Invalid Unit');
       done();
     });
   });
