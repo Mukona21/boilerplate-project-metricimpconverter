@@ -17,10 +17,10 @@ function ConvertHandler() {
         if (doubleFractionMatch.length !== 1) {
           result = "Invalid Number";
         } else {
-          result = Function("return " + result)();
+          result = eval(result);
         }
       } else {
-        result = Function("return " + result)();
+        result = eval(result);
       }
     }
     return result;
@@ -28,15 +28,21 @@ function ConvertHandler() {
 
   this.getUnit = function(input) {
     let result;
+    let checker = false;
     const regex = /[a-z]/i;
-    const index = input.indexOf(input.match(regex));
+    index = input.indexOf(input.match(regex));
     result = input.slice(index, input.length).toLowerCase();
     const unitBank = ["gal", "l", "mi", "km", "lbs", "kg"];
-    if (!unitBank.includes(result)) {
-      result = "Invalid Unit";
+    for (let i = 0; i < unitBank.length; i++) {
+      if (result === unitBank[i]) {
+        checker = true;
+        if (result === "l") {
+          result = "L";
+        }
+      }
     }
-    if (result === "l") {
-      result = "L";
+    if (!checker) {
+      result = "Invalid Unit";
     }
     return result;
   };
@@ -126,7 +132,7 @@ function ConvertHandler() {
         result = "ERROR";
     }
     if (result !== "ERROR") {
-      result = (result * 100000).toFixed(5) / 100000;
+      result = parseFloat(result.toFixed(5));
     }
     return result;
   };
